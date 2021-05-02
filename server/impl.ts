@@ -1,0 +1,71 @@
+import { Context, Methods } from "./.rtag/methods";
+import {
+  UserData,
+  Result,
+  PlayerState,
+  ICreateGameRequest,
+  IUpdateTargetRequest,
+  PlayerName,
+  Point,
+} from "./.rtag/types";
+
+interface InternalPlayerInfo {
+  name: PlayerName;
+  location: Point;
+  target?: Point;
+}
+
+interface InternalState {
+  players: InternalPlayerInfo[];
+  updatedAt: number;
+}
+
+const SPEED = 200;
+
+export class Impl implements Methods<InternalState> {
+  createGame(user: UserData, ctx: Context, request: ICreateGameRequest): InternalState {
+    return {
+      players: [createPlayer(user.name)],
+      updatedAt: 0,
+    };
+  }
+  updateTarget(state: InternalState, user: UserData, ctx: Context, request: IUpdateTargetRequest): Result {
+    let player = state.players.find((p) => p.name == user.name);
+    if (player == undefined) {
+      player = createPlayer(user.name);
+      state.players.push(player);
+    }
+    player.target = request.target;
+    return Result.success();
+  }
+  getUserState(state: InternalState, user: UserData): PlayerState {
+    const player = state.players.find((p) => p.name == user.name);
+    return {
+      board: state.players.map(({ name, location }) => ({ name, location })),
+      target: player?.target,
+      updatedAt: state.updatedAt,
+    };
+  }
+  onTick(state: InternalState, ctx: Context, timeDelta: number): void {
+    state.players.forEach((player) => {
+      if (player.target != undefined) {
+        const dx = player.target.x - player.location.x;
+        const dy = player.target.y - player.location.y;
+        const dist = Math.sqrt(dx * dx + dy * dy);
+        const pixelsToMove = SPEED * timeDelta;
+        if (dist < pixelsToMove) {
+          player.location = player.target;
+          player.target = undefined;
+        } else {
+          player.location.x += (dx / dist) * pixelsToMove;
+          player.location.y += (dy / dist) * pixelsToMove;
+        }
+        state.updatedAt = Date.now();
+      }
+    });
+  }
+}
+
+function createPlayer(name: PlayerName) {
+  return { name, location: { x: 0, y: 0 } };
+}

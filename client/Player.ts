@@ -47,7 +47,7 @@ export class Player {
     return lerp(
       this.restingLocation,
       this.buffer[0].location,
-      CLIENT_TICKRATE / (this.buffer[0].time - Date.now() + CLIENT_TICKRATE)
+      CLIENT_TICKRATE / (this.buffer[0].time - now + CLIENT_TICKRATE)
     );
   }
 }

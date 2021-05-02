@@ -24,10 +24,10 @@ export default class BoardComponent extends HTMLElement {
     this.shadowRoot!.append(canvas);
     const ctx = canvas.getContext("2d")!;
     const draw = () => {
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+      ctx.strokeStyle = "white";
       this.players.forEach((player) => {
         const { x, y } = player.getCurrPos();
-        ctx.clearRect(0, 0, canvas.width, canvas.height);
-        ctx.strokeStyle = "white";
         ctx.beginPath();
         ctx.arc(x, y, 15, 0, 2 * Math.PI);
         ctx.stroke();

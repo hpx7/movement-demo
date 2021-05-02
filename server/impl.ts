@@ -25,17 +25,17 @@ const SPEED = 200;
 export class Impl implements Methods<InternalState> {
   createGame(user: UserData, ctx: Context, request: ICreateGameRequest): InternalState {
     return {
-      players: [createPlayer(user.name)],
+      players: [{ name: user.name, location: { x: 0, y: 0 } }],
       updatedAt: 0,
     };
   }
   updateTarget(state: InternalState, user: UserData, ctx: Context, request: IUpdateTargetRequest): Result {
-    let player = state.players.find((p) => p.name == user.name);
-    if (player == undefined) {
-      player = createPlayer(user.name);
-      state.players.push(player);
+    const player = state.players.find((p) => p.name == user.name);
+    if (player === undefined) {
+      state.players.push({ name: user.name, location: request.target });
+    } else {
+      player.target = request.target;
     }
-    player.target = request.target;
     return Result.success();
   }
   getUserState(state: InternalState, user: UserData): PlayerState {
@@ -48,12 +48,12 @@ export class Impl implements Methods<InternalState> {
   }
   onTick(state: InternalState, ctx: Context, timeDelta: number): void {
     state.players.forEach((player) => {
-      if (player.target != undefined) {
+      if (player.target !== undefined) {
         const dx = player.target.x - player.location.x;
         const dy = player.target.y - player.location.y;
         const dist = Math.sqrt(dx * dx + dy * dy);
         const pixelsToMove = SPEED * timeDelta;
-        if (dist < pixelsToMove) {
+        if (dist <= pixelsToMove) {
           player.location = player.target;
           player.target = undefined;
         } else {
@@ -64,8 +64,4 @@ export class Impl implements Methods<InternalState> {
       }
     });
   }
-}
-
-function createPlayer(name: PlayerName) {
-  return { name, location: { x: 0, y: 0 } };
 }

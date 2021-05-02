@@ -20,9 +20,9 @@ export default class BoardComponent extends HTMLElement {
     canvas.onclick = (e: MouseEvent) => {
       this.client?.updateTarget({ target: { x: e.offsetX, y: e.offsetY } });
     };
-
     this.shadowRoot!.append(canvas);
     const ctx = canvas.getContext("2d")!;
+
     const draw = () => {
       ctx.clearRect(0, 0, canvas.width, canvas.height);
       ctx.strokeStyle = "white";

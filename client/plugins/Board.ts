@@ -2,6 +2,8 @@ import { Player } from "../Player";
 import { PlayerState } from "../.rtag/types";
 import { RtagClient } from "../.rtag/client";
 
+const BUFFER_TIME = 160;
+
 export default class BoardComponent extends HTMLElement {
   client: RtagClient | undefined;
   players: Player[] = [];
@@ -43,7 +45,7 @@ export default class BoardComponent extends HTMLElement {
       if (existingPlayer === undefined) {
         this.players.push(new Player(player.name, player.location));
       } else {
-        existingPlayer.updateTarget(player.location, state.updatedAt + 160);
+        existingPlayer.updateTarget(player.location, state.updatedAt + BUFFER_TIME);
       }
     });
   }

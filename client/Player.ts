@@ -19,9 +19,7 @@ export class Player {
     }
   }
 
-  getCurrPos() {
-    const now = Date.now();
-
+  getCurrPos(now: number) {
     if (this.buffer.length === 0) {
       console.log("buffer empty");
       return this.restingLocation;

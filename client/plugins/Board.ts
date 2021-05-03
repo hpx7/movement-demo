@@ -2,7 +2,7 @@ import { Player } from "../Player";
 import { PlayerState } from "../.rtag/types";
 import { RtagClient } from "../.rtag/client";
 
-const BUFFER_TIME = 160;
+const BUFFER_TIME = 140;
 
 export default class BoardComponent extends HTMLElement {
   client: RtagClient | undefined;

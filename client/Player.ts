@@ -1,10 +1,9 @@
 import { Point } from "./.rtag/types";
 
-const CLIENT_TICKRATE = 1000 / 60;
-
 export class Player {
   name: string;
   restingLocation: Point;
+  clientStartTime: number | undefined;
   buffer: { location: Point; time: number }[] = [];
 
   constructor(name: string, location: Point) {
@@ -27,6 +26,7 @@ export class Player {
 
     if (this.buffer[this.buffer.length - 1].time <= now) {
       console.log("buffer emptied");
+      this.clientStartTime = undefined;
       this.restingLocation = this.buffer[this.buffer.length - 1].location;
       this.buffer = [];
       return this.restingLocation;
@@ -35,23 +35,24 @@ export class Player {
     for (let i = this.buffer.length - 1; i >= 0; i--) {
       if (this.buffer[i].time <= now) {
         console.log("server interpolation");
+        this.clientStartTime = undefined;
         const [from, to] = [this.buffer[i], this.buffer[i + 1]];
         this.buffer.splice(0, i);
-        return lerp(from.location, to.location, (now - from.time) / (to.time - from.time));
+        return lerp(from, to, now);
       }
     }
 
     console.log("client interpolation");
-    return lerp(
-      this.restingLocation,
-      this.buffer[0].location,
-      CLIENT_TICKRATE / (this.buffer[0].time - now + CLIENT_TICKRATE)
-    );
+    if (this.clientStartTime === undefined) {
+      this.clientStartTime = now;
+    }
+    return lerp({ location: this.restingLocation, time: this.clientStartTime }, this.buffer[0], now);
   }
 }
 
-function lerp(a: Point, b: Point, pctElapsed: number) {
-  const dx = b.x - a.x;
-  const dy = b.y - a.y;
-  return { x: a.x + dx * pctElapsed, y: a.y + dy * pctElapsed };
+function lerp(from: { location: Point; time: number }, to: { location: Point; time: number }, now: number) {
+  const dx = to.location.x - from.location.x;
+  const dy = to.location.y - from.location.y;
+  const pctElapsed = (now - from.time) / (to.time - from.time);
+  return { x: from.location.x + dx * pctElapsed, y: from.location.y + dy * pctElapsed };
 }

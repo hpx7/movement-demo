@@ -1,13 +1,5 @@
-import { Context, Methods } from "./.rtag/methods";
-import {
-  UserData,
-  Result,
-  PlayerState,
-  ICreateGameRequest,
-  IUpdateTargetRequest,
-  PlayerName,
-  Point,
-} from "./.rtag/types";
+import { Methods, Context, Result } from "./.rtag/methods";
+import { UserData, PlayerState, ICreateGameRequest, IUpdateTargetRequest, PlayerName, Point } from "./.rtag/types";
 
 interface InternalPlayerInfo {
   name: PlayerName;
@@ -36,7 +28,7 @@ export class Impl implements Methods<InternalState> {
     } else {
       player.target = request.target;
     }
-    return Result.success();
+    return Result.modified();
   }
   getUserState(state: InternalState, user: UserData): PlayerState {
     const player = state.players.find((p) => p.name == user.name);
@@ -46,7 +38,8 @@ export class Impl implements Methods<InternalState> {
       updatedAt: state.updatedAt,
     };
   }
-  onTick(state: InternalState, ctx: Context, timeDelta: number): void {
+  onTick(state: InternalState, ctx: Context, timeDelta: number): Result {
+    let modified = false;
     state.players.forEach((player) => {
       if (player.target !== undefined) {
         const dx = player.target.x - player.location.x;
@@ -61,7 +54,9 @@ export class Impl implements Methods<InternalState> {
           player.location.y += (dy / dist) * pixelsToMove;
         }
         state.updatedAt = Date.now();
+        modified = true;
       }
     });
+    return modified ? Result.modified() : Result.unmodified();
   }
 }
